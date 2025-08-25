@@ -1,34 +1,32 @@
 <!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>File Metadata Microservice</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; padding: 2rem; }
+    .box { max-width: 600px; margin: 0 auto; }
+    form { margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>File Metadata Microservice</h1>
+    <p>Choisis un fichier puis clique sur <strong>Upload</strong>. Le serveur retournera le nom, le type et la taille en bytes.</p>
 
-<html>
+    <!-- FORMULAIRE REQUIS PAR LES TESTS FCC -->
+    <form id="uploadForm" action="/api/fileanalyse" method="post" enctype="multipart/form-data">
+      <!-- le name DOIT être exactement "upfile" -->
+      <input type="file" name="upfile" required />
+      <button type="submit">Upload</button>
+    </form>
 
-   <head>
-      <title>Request Header Parser</title>
-      <link rel="shortcut icon" href="https://cdn.hyperdev.com/us-east-1%3A52a203ff-088b-420f-81be-45bf559d01b1%2Ffavicon.ico" type="image/x-icon"/>
-      <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" type="text/css">
-      <link href="style.css" rel="stylesheet" type="text/css">
-   </head>
-
-   <body>
-      <div class="container">
-        <h1>Request Header Parser Microservice</h1>
-
-        <h2>Example Usage:</h2>
-        <p>
-          <a href="api/whoami">[base url]/api/whoami</a>
-        </p>
-
-        <h2>Example Output:</h2>
-        <p>
-          <code>{"ipaddress":"::ffff:159.20.14.100","language":"en-US,en;q=0.5",<br>"software":"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:50.0) Gecko/20100101 Firefox/50.0"}</code>
-        </p>
-      </div>
-      <div class="footer">
-        <p>
-          by <a href="https://www.freecodecamp.org">freeCodeCamp</a>
-        </p>
-      </div>
-   </body>
-
-
+    <hr/>
+    <p>Exemples d'API :</p>
+    <ul>
+      <li><a href="/api/fileanalyse">POST /api/fileanalyse</a> (via le formulaire ci-dessus)</li>
+    </ul>
+  </div>
+</body>
 </html>
