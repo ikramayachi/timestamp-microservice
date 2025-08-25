@@ -20,7 +20,7 @@ module.exports = function(app) {
       const returnUnit = convertHandler.getReturnUnit(initUnit);
       const string = convertHandler.getString(initNum, initUnit, returnNum, returnUnit);
 
-      return res.json({
+      res.json({
         initNum,
         initUnit,
         returnNum,

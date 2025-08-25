@@ -48,6 +48,7 @@ function ConvertHandler() {
       default: result = null;
     }
 
+    // Arrondir à 5 décimales exactement
     return parseFloat(result.toFixed(5));
   };
 
