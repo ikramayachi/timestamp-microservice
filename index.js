@@ -1,30 +1,85 @@
-// index.js
-// where your node app starts
-
-// init project
 require('dotenv').config();
-var express = require('express');
-var app = express();
+const express = require('express');
+const cors = require('cors');
 
-// enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
-// so that your API is remotely testable by FCC
-var cors = require('cors');
-app.use(cors({ optionsSuccessStatus: 200 })); // some legacy browsers choke on 204
+const app = express(); // ✅ à définir avant les routes
 
-// http://expressjs.com/en/starter/static-files.html
+app.use(cors({ optionsSuccessStatus: 200 }));
 app.use(express.static('public'));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
-// http://expressjs.com/en/starter/basic-routing.html
-app.get('/', function (req, res) {
+// route home
+app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html');
 });
 
-// your first API endpoint...
-app.get('/api/hello', function (req, res) {
+// test API
+app.get('/api/hello', (req, res) => {
   res.json({ greeting: 'hello API' });
 });
 
-// listen for requests :)
-var listener = app.listen(process.env.PORT || 3000, function () {
+// ---------------------------
+// ici ton code avec `users`
+// ---------------------------
+const users = [];
+let idCounter = 1;
+
+app.post("/api/users", (req, res) => {
+  const username = req.body.username;
+  const user = { username, _id: idCounter.toString(), log: [] };
+  users.push(user);
+  idCounter++;
+  res.json({ username: user.username, _id: user._id });
+});
+
+app.get("/api/users", (req, res) => {
+  res.json(users.map(u => ({ username: u.username, _id: u._id })));
+});
+
+app.post("/api/users/:_id/exercises", (req, res) => {
+  const user = users.find(u => u._id === req.params._id);
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  const { description, duration, date } = req.body;
+  const exercise = {
+    description,
+    duration: parseInt(duration),
+    date: date ? new Date(date).toDateString() : new Date().toDateString()
+  };
+  user.log.push(exercise);
+
+  res.json({
+    username: user.username,
+    _id: user._id,
+    description: exercise.description,
+    duration: exercise.duration,
+    date: exercise.date
+  });
+});
+
+app.get("/api/users/:_id/logs", (req, res) => {
+  const user = users.find(u => u._id === req.params._id);
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  let log = [...user.log];
+
+  const { from, to, limit } = req.query;
+  if (from) log = log.filter(e => new Date(e.date) >= new Date(from));
+  if (to) log = log.filter(e => new Date(e.date) <= new Date(to));
+  if (limit) log = log.slice(0, parseInt(limit));
+
+  res.json({
+    username: user.username,
+    _id: user._id,
+    count: log.length,
+    log
+  });
+});
+
+// ---------------------------
+// démarrer le serveur
+// ---------------------------
+const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port);
 });
