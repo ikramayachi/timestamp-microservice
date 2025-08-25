@@ -2,15 +2,15 @@ function ConvertHandler() {
 
   this.getNum = function(input) {
     let result;
-    let numStr = input.match(/^[\d.\/]+/);
+    let numStr = input.match(/^[\d/.]+/);
     numStr = numStr ? numStr[0] : '';
 
-    if(numStr === '') return 1;
+    if (!numStr) return 1; // Default to 1 if no number
 
-    if ((numStr.match(/\//g) || []).length > 1) return 'invalid number';
+    if ((numStr.match(/\//g) || []).length > 1) return 'invalid number'; // double fraction
 
     if (numStr.includes('/')) {
-      let [numerator, denominator] = numStr.split('/');
+      const [numerator, denominator] = numStr.split('/');
       if (!numerator || !denominator) return 'invalid number';
       return parseFloat(numerator) / parseFloat(denominator);
     }
@@ -22,8 +22,7 @@ function ConvertHandler() {
     let unitStr = input.match(/[a-zA-Z]+$/);
     unitStr = unitStr ? unitStr[0] : '';
     const validUnits = ['gal','l','L','mi','km','lbs','kg'];
-
-    if (!validUnits.includes(unitStr.toLowerCase()) && unitStr !== 'L') return 'invalid unit';
+    if (!validUnits.includes(unitStr)) return 'invalid unit';
     return (unitStr.toLowerCase() === 'l') ? 'L' : unitStr.toLowerCase();
   };
 
