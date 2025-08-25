@@ -23,6 +23,27 @@ app.get('/', function (req, res) {
 app.get('/api/hello', function (req, res) {
   res.json({ greeting: 'hello API' });
 });
+// si tu veux que req.ip retourne l'IP correcte derrière un proxy (Heroku, Render...), active trust proxy
+app.enable('trust proxy');
+
+app.get("/api/whoami", (req, res) => {
+  // IP : utilise X-Forwarded-For si présent sinon req.ip
+  const forwarded = req.headers['x-forwarded-for'];
+  const ipaddress = forwarded ? forwarded.split(',')[0].trim() : req.ip;
+
+  // Langue préférée : Accept-Language header (on prend la première valeur)
+  const acceptLang = req.headers['accept-language'] || '';
+  const language = acceptLang.split(',')[0];
+
+  // Software : User-Agent header (full string)
+  const software = req.headers['user-agent'] || '';
+
+  res.json({
+    ipaddress,
+    language,
+    software
+  });
+});
 
 // listen for requests :)
 var listener = app.listen(process.env.PORT || 3000, function () {
