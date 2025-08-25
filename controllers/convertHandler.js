@@ -1,15 +1,25 @@
+'use strict';
+
 function ConvertHandler() {
 
   this.getNum = function(input) {
-    let numStr = input.match(/^[\d/.]+/);
+    // Récupérer la partie numérique
+    let numStr = input.match(/^[\d.\/]+/);
     numStr = numStr ? numStr[0] : '';
-    if (!numStr) return 1; // Default to 1
+
+    if (!numStr) return 1; // Par défaut 1
+
+    // Vérifier double fraction
     if ((numStr.match(/\//g) || []).length > 1) return 'invalid number';
+
+    // Fraction simple
     if (numStr.includes('/')) {
       const [numerator, denominator] = numStr.split('/');
       if (!numerator || !denominator) return 'invalid number';
       return parseFloat(numerator) / parseFloat(denominator);
     }
+
+    // Nombre décimal ou entier
     return parseFloat(numStr);
   };
 
@@ -17,19 +27,22 @@ function ConvertHandler() {
     let unitStr = input.match(/[a-zA-Z]+$/);
     if (!unitStr) return 'invalid unit';
     unitStr = unitStr[0];
+
     const validUnits = ['gal','l','mi','km','lbs','kg'];
     if (!validUnits.includes(unitStr.toLowerCase())) return 'invalid unit';
+
+    // Toujours 'L' pour litre
     return unitStr.toLowerCase() === 'l' ? 'L' : unitStr.toLowerCase();
   };
 
   this.getReturnUnit = function(initUnit) {
-    const map = { gal:'L', L:'gal', lbs:'kg', kg:'lbs', mi:'km', km:'mi' };
-    return map[initUnit];
+    const map = { gal:'L', l:'gal', lbs:'kg', kg:'lbs', mi:'km', km:'mi' };
+    return map[initUnit.toLowerCase()] === 'L' ? 'L' : map[initUnit.toLowerCase()];
   };
 
   this.spellOutUnit = function(unit) {
     const spellMap = { gal:'gallons', L:'liters', lbs:'pounds', kg:'kilograms', mi:'miles', km:'kilometers' };
-    return spellMap[unit];
+    return spellMap[unit === 'L' ? 'L' : unit.toLowerCase()];
   };
 
   this.convert = function(initNum, initUnit) {
@@ -48,8 +61,7 @@ function ConvertHandler() {
       default: result = null;
     }
 
-    // Arrondir à 5 décimales exactement
-    return parseFloat(result.toFixed(5));
+    return parseFloat(result.toFixed(5)); // arrondir à 5 décimales
   };
 
   this.getString = function(initNum, initUnit, returnNum, returnUnit) {
