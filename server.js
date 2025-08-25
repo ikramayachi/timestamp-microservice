@@ -4,12 +4,13 @@
 const express = require('express');
 const app = express();
 const apiRoutes = require('./routes/api');
+const path = require('path');
 
 app.use('/api', apiRoutes);
 
-// basic index to satisfy the FCC project page
+// Serve index.html (page FCC)
 app.get('/', (req, res) => {
-  res.sendFile(process.cwd() + '/views/index.html');
+  res.sendFile(path.join(__dirname, 'views', 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;

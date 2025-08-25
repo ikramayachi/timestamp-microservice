@@ -15,80 +15,56 @@ const SPELL_OUT = {
 };
 
 const CONV_FACTORS = {
-  gal: 3.78541,   // gal -> L
-  l: 1 / 3.78541, // L -> gal (inverse)
-  lbs: 0.453592,  // lbs -> kg
+  gal: 3.78541,
+  l: 1 / 3.78541,
+  lbs: 0.453592,
   kg: 1 / 0.453592,
-  mi: 1.60934,    // mi -> km
+  mi: 1.60934,
   km: 1 / 1.60934
 };
 
 function parseNumber(input) {
-  if (input === undefined || input === null) return { error: 'invalid number' };
-  // find index of first alpha char -> unit start
-  const m = input.match(/[a-zA-Z]/);
-  const idx = m ? m.index : input.length;
-  let numStr = input.slice(0, idx).trim();
+  if (!input) return { value: 1 };
 
-  if (numStr === '') return { value: 1 }; // default 1 when no number
+  const idx = input.search(/[a-zA-Z]/);
+  const numStr = idx === -1 ? input : input.slice(0, idx);
 
-  // More than one slash -> invalid
-  const slashes = (numStr.match(/\//g) || []).length;
-  if (slashes > 1) return { error: 'invalid number' };
+  if (numStr === '') return { value: 1 };
 
-  try {
-    if (slashes === 1) {
-      const [num, den] = numStr.split('/');
-      if (num === '' || den === '') return { error: 'invalid number' };
-      const n = parseFloat(num);
-      const d = parseFloat(den);
-      if (isNaN(n) || isNaN(d)) return { error: 'invalid number' };
-      return { value: n / d };
-    } else {
-      const v = parseFloat(numStr);
-      if (isNaN(v)) return { error: 'invalid number' };
-      return { value: v };
-    }
-  } catch (e) {
-    return { error: 'invalid number' };
+  if ((numStr.match(/\//g) || []).length > 1) return { error: 'invalid number' };
+
+  if (numStr.includes('/')) {
+    const [num, den] = numStr.split('/');
+    const n = parseFloat(num);
+    const d = parseFloat(den);
+    if (isNaN(n) || isNaN(d)) return { error: 'invalid number' };
+    return { value: n / d };
+  } else {
+    const v = parseFloat(numStr);
+    if (isNaN(v)) return { error: 'invalid number' };
+    return { value: v };
   }
 }
 
 function parseUnit(input) {
-  if (input === undefined || input === null) return { error: 'invalid unit' };
-  const m = input.match(/[a-zA-Z]/);
-  const idx = m ? m.index : input.length;
-  let unitStr = input.slice(idx).trim();
-  if (!unitStr) return { error: 'invalid unit' };
+  const idx = input.search(/[a-zA-Z]/);
+  const unitStr = idx === -1 ? '' : input.slice(idx).toLowerCase();
 
-  const lower = unitStr.toLowerCase();
-
-  // Accept either 'l' or 'L' but normalize to 'l' internally
-  if (VALID_UNITS.includes(lower)) return { value: lower };
-  return { error: 'invalid unit' };
+  if (!unitStr || !VALID_UNITS.includes(unitStr)) return { error: 'invalid unit' };
+  return { value: unitStr };
 }
 
 function getReturnUnit(initUnit) {
-  const key = initUnit.toLowerCase();
-  if (key === 'gal') return 'L';
-  if (key === 'l') return 'gal';
-  if (key === 'mi') return 'km';
-  if (key === 'km') return 'mi';
-  if (key === 'lbs') return 'kg';
-  if (key === 'kg') return 'lbs';
-  return null;
+  const map = { gal: 'L', l: 'gal', mi: 'km', km: 'mi', lbs: 'kg', kg: 'lbs' };
+  return map[initUnit.toLowerCase()];
 }
 
 function spellOutUnit(unit) {
-  const key = unit.toLowerCase();
-  return SPELL_OUT[key] || null;
+  return SPELL_OUT[unit.toLowerCase()];
 }
 
 function convertNumber(initNum, initUnit) {
-  const key = initUnit.toLowerCase();
-  const factor = CONV_FACTORS[key];
-  if (factor === undefined) return null;
-  return toFixed5(initNum * factor);
+  return toFixed5(initNum * CONV_FACTORS[initUnit.toLowerCase()]);
 }
 
 function buildString(initNum, initUnit, returnNum, returnUnit) {
