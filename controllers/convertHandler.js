@@ -7,10 +7,8 @@ function ConvertHandler() {
     
     if (numStr === '') return 1; // défaut à 1
 
-    // Double fraction ?
     if ((numStr.match(/\//g) || []).length > 1) return 'invalid number';
 
-    // Fraction
     if (numStr.includes('/')) {
       const numbers = numStr.split('/');
       result = parseFloat(numbers[0]) / parseFloat(numbers[1]);
