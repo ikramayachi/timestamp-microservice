@@ -1,21 +1,18 @@
 // routes/api.js
-
 'use strict';
 
 const express = require('express');
 const router = express.Router();
-const convertHandler = require('../controllers/convertHandler');
+const convert = require('../controllers/convertHandler');
 
 router.get('/convert', (req, res) => {
-  const input = req.query.input;
-  // If input is undefined, treat as empty string (will error)
-  const inputValue = typeof input === 'string' ? input.trim() : '';
+  const input = typeof req.query.input === 'string' ? req.query.input.trim() : '';
 
-  const numResult = convertHandler.getNum(inputValue);
-  const unitResult = convertHandler.getUnit(inputValue);
+  const numRes = convert.parseNumber(input);
+  const unitRes = convert.parseUnit(input);
 
-  const numError = numResult && numResult.error;
-  const unitError = unitResult && unitResult.error;
+  const numError = numRes && numRes.error;
+  const unitError = unitRes && unitRes.error;
 
   if (numError && unitError) {
     return res.send('invalid number and unit');
@@ -25,22 +22,20 @@ router.get('/convert', (req, res) => {
     return res.send('invalid unit');
   }
 
-  const initNum = convertHandler.getNum(inputValue).value;
-  const initUnitKey = convertHandler.getUnit(inputValue).value; // normalized like 'l' or 'kg'
-  // Format initUnit for output: 'L' uppercase for liters, others lowercase
-  const initUnit = initUnitKey.toLowerCase() === 'l' ? 'L' : initUnitKey.toLowerCase();
+  const initNum = numRes.value;
+  const initUnitKey = unitRes.value; // normalized lower-case like 'l' or 'kg'
+  const initUnitOut = initUnitKey === 'l' ? 'L' : initUnitKey; // show 'L' uppercase
+  const returnUnit = convert.getReturnUnit(initUnitKey);
+  const returnNum = convert.convertNumber(initNum, initUnitKey);
 
-  const returnUnit = convertHandler.getReturnUnit(initUnitKey);
-  const returnNum = convertHandler.convert(initNum, initUnitKey);
+  const responseString = convert.buildString(initNum, initUnitKey, returnNum, returnUnit);
 
-  const resultString = convertHandler.buildString(initNum, initUnitKey, returnNum, returnUnit);
-
-  res.json({
+  return res.json({
     initNum: initNum,
-    initUnit: initUnit,
+    initUnit: initUnitOut,
     returnNum: returnNum,
     returnUnit: returnUnit,
-    string: resultString
+    string: responseString
   });
 });
 

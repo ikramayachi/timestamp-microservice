@@ -1,12 +1,22 @@
-// server.js (example)
+// server.js
+'use strict';
+
 const express = require('express');
 const app = express();
-const routes = require('./routes/api');
+const apiRoutes = require('./routes/api');
 
-app.use('/api', routes);
+app.use('/api', apiRoutes);
 
-const listener = app.listen(process.env.PORT || 3000, () => {
-  console.log('Your app is listening on port ' + listener.address().port);
+// basic index to satisfy the FCC project page
+app.get('/', (req, res) => {
+  res.sendFile(process.cwd() + '/views/index.html');
 });
 
-module.exports = app; // export app for tests (chai-http)
+const PORT = process.env.PORT || 3000;
+const listener = app.listen(PORT, () => {
+  if (process.env.NODE_ENV !== 'test') {
+    console.log('Your app is listening on port ' + listener.address().port);
+  }
+});
+
+module.exports = app;

@@ -1,21 +1,11 @@
 // controllers/convertHandler.js
-
 'use strict';
 
 const toFixed5 = (num) => Number(Number(num).toFixed(5));
 
-const validUnits = ['gal', 'l', 'mi', 'km', 'lbs', 'kg'];
+const VALID_UNITS = ['gal', 'l', 'mi', 'km', 'lbs', 'kg'];
 
-const unitMap = {
-  gal: 'L',
-  l: 'gal',
-  mi: 'km',
-  km: 'mi',
-  lbs: 'kg',
-  kg: 'lbs'
-};
-
-const spellOut = {
+const SPELL_OUT = {
   gal: 'gallons',
   l: 'liters',
   mi: 'miles',
@@ -24,109 +14,94 @@ const spellOut = {
   kg: 'kilograms'
 };
 
-const CONV = {
-  gal: 3.78541,    // gal -> L
-  l: 1 / 3.78541,  // L -> gal (inverse)
-  lbs: 0.453592,   // lbs -> kg
-  kg: 1 / 0.453592, // kg -> lbs
-  mi: 1.60934,     // mi -> km
-  km: 1 / 1.60934  // km -> mi
+const CONV_FACTORS = {
+  gal: 3.78541,   // gal -> L
+  l: 1 / 3.78541, // L -> gal (inverse)
+  lbs: 0.453592,  // lbs -> kg
+  kg: 1 / 0.453592,
+  mi: 1.60934,    // mi -> km
+  km: 1 / 1.60934
 };
 
-function getNum(input) {
-  if (!input) return { error: 'invalid number' };
-
-  // find first letter - unit starts there
-  const match = input.match(/[a-zA-Z]/);
-  const idx = match ? match.index : input.length;
+function parseNumber(input) {
+  if (input === undefined || input === null) return { error: 'invalid number' };
+  // find index of first alpha char -> unit start
+  const m = input.match(/[a-zA-Z]/);
+  const idx = m ? m.index : input.length;
   let numStr = input.slice(0, idx).trim();
 
-  if (numStr === '') {
-    // default to 1
-    return { value: 1 };
-  }
+  if (numStr === '') return { value: 1 }; // default 1 when no number
 
-  // check for multiple slashes
-  const slashCount = (numStr.match(/\//g) || []).length;
-  if (slashCount > 1) return { error: 'invalid number' };
+  // More than one slash -> invalid
+  const slashes = (numStr.match(/\//g) || []).length;
+  if (slashes > 1) return { error: 'invalid number' };
 
-  let value;
   try {
-    if (slashCount === 1) {
+    if (slashes === 1) {
       const [num, den] = numStr.split('/');
       if (num === '' || den === '') return { error: 'invalid number' };
       const n = parseFloat(num);
       const d = parseFloat(den);
       if (isNaN(n) || isNaN(d)) return { error: 'invalid number' };
-      value = n / d;
+      return { value: n / d };
     } else {
       const v = parseFloat(numStr);
       if (isNaN(v)) return { error: 'invalid number' };
-      value = v;
+      return { value: v };
     }
   } catch (e) {
     return { error: 'invalid number' };
   }
-
-  return { value };
 }
 
-function getUnit(input) {
-  if (!input) return { error: 'invalid unit' };
-  const match = input.match(/[a-zA-Z]/);
-  const idx = match ? match.index : input.length;
+function parseUnit(input) {
+  if (input === undefined || input === null) return { error: 'invalid unit' };
+  const m = input.match(/[a-zA-Z]/);
+  const idx = m ? m.index : input.length;
   let unitStr = input.slice(idx).trim();
   if (!unitStr) return { error: 'invalid unit' };
 
-  // accept case-insensitive, allow 'L' or 'l'
-  const unitLower = unitStr.toLowerCase();
+  const lower = unitStr.toLowerCase();
 
-  // make normalized key: for 'l' return 'l', others as lower case
-  if (unitLower === 'l' || unitLower === 'lt' || unitLower === 'liter' || unitLower === 'liters') {
-    // only 'L' or 'l' expected by tests, so normalize to 'l'
-    if (validUnits.includes('l')) return { value: 'l' };
-  }
-
-  if (validUnits.includes(unitLower)) return { value: unitLower };
-
+  // Accept either 'l' or 'L' but normalize to 'l' internally
+  if (VALID_UNITS.includes(lower)) return { value: lower };
   return { error: 'invalid unit' };
 }
 
 function getReturnUnit(initUnit) {
   const key = initUnit.toLowerCase();
-  if (!unitMap[key]) return null;
-  // unitMap returns 'L' for gal and 'gal' for l, etc.
-  // but our internal canonical keys use lower-case 'l'
-  const ret = unitMap[key];
-  // make sure we return 'L' uppercase for liters, per spec
-  if (ret.toLowerCase() === 'l') return 'L';
-  return ret.toLowerCase();
+  if (key === 'gal') return 'L';
+  if (key === 'l') return 'gal';
+  if (key === 'mi') return 'km';
+  if (key === 'km') return 'mi';
+  if (key === 'lbs') return 'kg';
+  if (key === 'kg') return 'lbs';
+  return null;
 }
 
 function spellOutUnit(unit) {
   const key = unit.toLowerCase();
-  return spellOut[key] || null;
+  return SPELL_OUT[key] || null;
 }
 
-function convert(initNum, initUnit) {
+function convertNumber(initNum, initUnit) {
   const key = initUnit.toLowerCase();
-  const factor = CONV[key];
+  const factor = CONV_FACTORS[key];
   if (factor === undefined) return null;
-  const result = initNum * factor;
-  return toFixed5(result);
+  return toFixed5(initNum * factor);
 }
 
 function buildString(initNum, initUnit, returnNum, returnUnit) {
-  const initUnitString = spellOutUnit(initUnit);
-  const returnUnitString = spellOutUnit(returnUnit);
-  return `${initNum} ${initUnitString} converts to ${returnNum} ${returnUnitString}`;
+  const initUnitStr = spellOutUnit(initUnit);
+  const returnUnitStr = spellOutUnit(returnUnit);
+  return `${initNum} ${initUnitStr} converts to ${returnNum} ${returnUnitStr}`;
 }
 
 module.exports = {
-  getNum,
-  getUnit,
+  parseNumber,
+  parseUnit,
   getReturnUnit,
   spellOutUnit,
-  convert,
+  convertNumber,
   buildString
 };
