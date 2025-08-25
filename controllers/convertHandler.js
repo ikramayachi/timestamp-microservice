@@ -21,9 +21,11 @@ function ConvertHandler() {
   this.getUnit = function(input) {
     let unitStr = input.match(/[a-zA-Z]+$/);
     unitStr = unitStr ? unitStr[0] : '';
-    const validUnits = ['gal','l','L','mi','km','lbs','kg'];
-    if (!validUnits.includes(unitStr)) return 'invalid unit';
-    return (unitStr.toLowerCase() === 'l') ? 'L' : unitStr.toLowerCase();
+    const validUnits = ['gal','l','mi','km','lbs','kg'];
+    if (!unitStr) return 'invalid unit';
+    let lowerUnit = unitStr.toLowerCase();
+    if (!validUnits.includes(lowerUnit)) return 'invalid unit';
+    return lowerUnit === 'l' ? 'L' : lowerUnit;
   };
 
   this.getReturnUnit = function(initUnit) {
@@ -49,7 +51,7 @@ function ConvertHandler() {
       case 'kg': result = initNum / lbsToKg; break;
       case 'mi': result = initNum * miToKm; break;
       case 'km': result = initNum / miToKm; break;
-      default: result = null;
+      default: return 'invalid unit';
     }
 
     return parseFloat(result.toFixed(5));
