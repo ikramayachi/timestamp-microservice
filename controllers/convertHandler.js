@@ -1,42 +1,41 @@
 function ConvertHandler() {
   
+  // Extraire le nombre
   this.getNum = function(input) {
     let result;
-    // Extraire la partie numérique
-    let numRegex = /^[\d\.\/]+/;
-    let numStr = input.match(numRegex) ? input.match(numRegex)[0] : '';
+    const numRegex = /^[\d.\/]+/;
+    const numStr = input.match(numRegex) ? input.match(numRegex)[0] : '';
     
-    if(numStr === '') return 1; // défaut à 1 si aucun nombre
-    
-    // Vérifier les doubles fractions
-    if((numStr.match(/\//g) || []).length > 1) return 'invalid number';
-    
+    if (numStr === '') return 1; // défaut à 1
+
+    // Vérifier double fraction
+    if ((numStr.match(/\//g) || []).length > 1) return 'invalid number';
+
     // Gérer fraction
-    if(numStr.includes('/')) {
-      let numbers = numStr.split('/');
+    if (numStr.includes('/')) {
+      const numbers = numStr.split('/');
       result = parseFloat(numbers[0]) / parseFloat(numbers[1]);
     } else {
       result = parseFloat(numStr);
     }
-    
+
     return result;
   };
   
+  // Extraire l'unité
   this.getUnit = function(input) {
-    let unitRegex = /[a-zA-Z]+$/;
+    const unitRegex = /[a-zA-Z]+$/;
     let unit = input.match(unitRegex) ? input.match(unitRegex)[0] : '';
-    let validUnits = ['gal','l','L','mi','km','lbs','kg'];
-    
-    if(!validUnits.includes(unit.toLowerCase()) && unit !== 'L') return 'invalid unit';
-    
-    // Pour normaliser L en majuscule
-    if(unit.toLowerCase() === 'l') return 'L';
-    
+    const validUnits = ['gal','l','L','mi','km','lbs','kg'];
+
+    if (!validUnits.includes(unit.toLowerCase()) && unit !== 'L') return 'invalid unit';
+    if (unit.toLowerCase() === 'l') return 'L';
     return unit.toLowerCase();
   };
   
+  // Unité de conversion
   this.getReturnUnit = function(initUnit) {
-    const conversionMap = {
+    const map = {
       gal: 'L',
       L: 'gal',
       lbs: 'kg',
@@ -44,9 +43,10 @@ function ConvertHandler() {
       mi: 'km',
       km: 'mi'
     };
-    return conversionMap[initUnit];
+    return map[initUnit];
   };
 
+  // Écriture complète de l'unité
   this.spellOutUnit = function(unit) {
     const spellMap = {
       gal: 'gallons',
@@ -59,13 +59,14 @@ function ConvertHandler() {
     return spellMap[unit];
   };
   
+  // Conversion
   this.convert = function(initNum, initUnit) {
     const galToL = 3.78541;
     const lbsToKg = 0.453592;
     const miToKm = 1.60934;
     let result;
 
-    switch(initUnit) {
+    switch (initUnit) {
       case 'gal':
         result = initNum * galToL;
         break;
@@ -91,12 +92,12 @@ function ConvertHandler() {
     return parseFloat(result.toFixed(5));
   };
   
+  // Construire la phrase finale
   this.getString = function(initNum, initUnit, returnNum, returnUnit) {
     const initUnitString = this.spellOutUnit(initUnit);
     const returnUnitString = this.spellOutUnit(returnUnit);
     return `${initNum} ${initUnitString} converts to ${returnNum} ${returnUnitString}`;
   };
-  
 }
 
 module.exports = ConvertHandler;
